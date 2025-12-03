@@ -28,7 +28,7 @@ class GamePage extends StatefulWidget {
 class GamePageState extends State<GamePage>
    with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
-  final GameWorld _gameWorld = GameWorld();
+  final GameWorld _gameWorld = GameWorld.fromConfig(config: gameConfig);
   GamePageState();
 
   @override
@@ -91,6 +91,11 @@ class GamePageState extends State<GamePage>
                       y: _gameWorld.height * 1/3,
                       text: "Game Over",
                     ),
+                    ScoreText(
+                      x: _gameWorld.width / 2,
+                      y: _gameWorld.height / 2,
+                      text: "Score: ${_gameWorld.score}",
+                    ),
                     PrimaryActionButton(
                       x: _gameWorld.width / 2,
                       y: _gameWorld.height * 2/3,
@@ -103,7 +108,12 @@ class GamePageState extends State<GamePage>
                     LifeDisplay(
                       x: _gameWorld.width/2,
                       y: 30,
-                      lives: _gameWorld.playerLives,
+                      lives: _gameWorld.lives,
+                    ),
+                    ScoreText(
+                      x: _gameWorld.width-60,
+                      y: 30,
+                      text: "Score: ${_gameWorld.score}",
                     ),
                     for (final sprite in _gameWorld.sprites)
                     SpriteWidget.fromSprite(sprite: sprite),

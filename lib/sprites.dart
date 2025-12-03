@@ -24,7 +24,6 @@ class Sprite {
 }
 
 class Player extends Sprite {
-  int lives = 5;
   Player({
     required super.x,
     required super.y,

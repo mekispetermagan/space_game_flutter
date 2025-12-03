@@ -112,11 +112,13 @@ class TitleText extends StatelessWidget {
   final double x;
   final double y;
   final String text;
+  final double? size;
 
   const TitleText({
     required this.x,
     required this.y,
     required this.text,
+    this.size,
     super.key,
   });
 
@@ -128,12 +130,36 @@ class TitleText extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 30,
+          fontSize: size ?? 30,
           color: Colors.purpleAccent[100],
         ),
       ),
     );
   }
+}
+
+class ScoreText extends StatelessWidget {
+  final double x;
+  final double y;
+  final String text;
+
+  const ScoreText({
+    required this.x,
+    required this.y,
+    required this.text,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TitleText(
+      x: x,
+      y: y,
+      text: text,
+      size: 18,
+    );
+  }
+
 }
 
 class PrimaryActionButton extends StatelessWidget {

@@ -3,32 +3,92 @@ import 'dart:math';
 
 enum GamePhase {title, gameOn, gameOver}
 
+class GameConfig {
+  final int maxLives;
+  final double width;
+  final double height;
+  final double spawnInterval;
+  final double enemyBulletInterval;
+  final double playerBulletInterval;
+  const GameConfig({
+    required this.maxLives,
+    required this.width,
+    required this.height,
+    required this.spawnInterval,
+    required this.enemyBulletInterval,
+    required this.playerBulletInterval,
+  });
+}
+
+final gameConfig = GameConfig(
+  maxLives: 5,
+  width: 360,
+  height: 640,
+  spawnInterval: 1.5,
+  enemyBulletInterval: 2,
+  playerBulletInterval: 0.5,
+);
+
 // time is measured consistently in seconds, and is double
 // velocity is pixel per second
 // size should be adjucted to screen later;
 // for now it is 360x640, fitting the safe area in old phones
 class GameWorld {
-  GamePhase gamePhase = GamePhase.title;
-  final double width = 360;
-  final double height = 640;
   final Player _player = Player(x: 180, y: 560);
+  final int _maxLives;
+  final double width;
+  final double height;
+  final double _spawnInterval;
+  final double _enemyBulletInterval;
+  final double _playerBulletInterval;
+  final Random r;
+  GamePhase gamePhase = GamePhase.title;
+  int _score = 0;
   List<Enemy> _enemies = [];
   List<EnemyBullet> _enemyBullets = [];
   List<PlayerBullet> _playerBullets = [];
   List<Sprite> sprites = [];
   double _elapsed = 0;
-  final double spawnInterval = 1.5;
-  double spawnTimer = 1.5;
-  final double enemyBulletInterval = 2;
-  final double playerBulletInterval = 0.5;
-  double playerBulletTimer = 0.5;
   String debugText = "";
-  final Random r;
-  GameWorld({
-    Random? random,
-  }) : r = random ?? Random();
+  int _lives;
+  double _spawnTimer;
+  double _playerBulletTimer;
 
-  int get playerLives => _player.lives;
+  GameWorld({
+    required int maxLives,
+    required this.width,
+    required this.height,
+    required double spawnInterval,
+    required double enemyBulletInterval,
+    required double playerBulletInterval,
+    Random? random,
+  }
+  )
+  : r = random ?? Random(),
+  _maxLives = maxLives,
+  _lives = maxLives,
+  _spawnInterval = spawnInterval,
+  _spawnTimer = spawnInterval,
+  _enemyBulletInterval = enemyBulletInterval,
+  _playerBulletInterval = playerBulletInterval,
+  _playerBulletTimer = playerBulletInterval;
+
+  factory GameWorld.fromConfig({
+    required GameConfig config,
+    Random? random,}
+  ) {
+    return GameWorld(
+      maxLives: config.maxLives,
+      width: config.width,
+      height: config.height,
+      spawnInterval: config.spawnInterval,
+      enemyBulletInterval: config.enemyBulletInterval,
+      playerBulletInterval: config.playerBulletInterval,
+    );
+  }
+
+  int get lives => _lives;
+  int get score => _score;
 
   void update(Duration elapsed) {
     sprites = [_player, ..._enemies, ..._enemyBullets, ..._playerBullets];
@@ -65,7 +125,8 @@ class GameWorld {
         if (_collide(b1, b2)) {
           b1.isDead = true;
           b2.isDead = true;
-          }
+          _score += 10;
+        }
       }
     }
     for (final b in _playerBullets) {
@@ -73,19 +134,22 @@ class GameWorld {
         if (_collide(b, e)) {
           b.isDead = true;
           e.isDead = true;
+          _score += 30;
           }
       }
     }
     for (final b in _enemyBullets) {
         if (_collide(b, _player)) {
           b.isDead = true;
-          _player.lives = max(0, _player.lives-1);
+          _lives = max(0, _lives-1);
+          _score += 5;
         }
     }
     for (final e in _enemies) {
         if (_collide(e, _player)) {
           e.isDead = true;
-          _player.lives = max(0, _player.lives-1);
+          _lives = max(0, _lives-1);
+          _score += 15;
         }
     }
   }
@@ -103,6 +167,7 @@ class GameWorld {
         switch (cond) {
           case DeathCondition.atLowerEdge: if (height<s.y) {
             s.isDead = true;
+            if (s is Enemy) {_lives = max(0, _lives-1);}
           }
           case DeathCondition.atUpperEdge: if (s.y<0) {
             s.isDead = true;
@@ -120,18 +185,18 @@ class GameWorld {
 
 
   void _createEnemies(double dt) {
-    spawnTimer -= dt;
-    if (spawnTimer <= 0) {
-      spawnTimer = spawnInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
+    _spawnTimer -= dt;
+    if (_spawnTimer <= 0) {
+      _spawnTimer = _spawnInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
       final double x = r.nextDouble() * width;
-      _enemies.add(Enemy(x: x, y: 0, fireInterval: enemyBulletInterval));
+      _enemies.add(Enemy(x: x, y: 0, fireInterval: _enemyBulletInterval));
     }
   }
 
   void _createPlayerBullets(double dt) {
-    playerBulletTimer -= dt;
-    if (playerBulletTimer <= 0) {
-      playerBulletTimer = playerBulletInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
+    _playerBulletTimer -= dt;
+    if (_playerBulletTimer <= 0) {
+      _playerBulletTimer = _playerBulletInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
       _playerBullets.add(PlayerBullet(x: _player.x, y: _player.y-_player.size/2));
     }
   }
@@ -149,7 +214,7 @@ class GameWorld {
   }
 
   void _checkGameOver() {
-    if (_player.lives == 0) {
+    if (_lives == 0) {
       _enemies = [];
       _enemyBullets = [];
       _playerBullets = [];
@@ -158,7 +223,8 @@ class GameWorld {
   }
 
   void reset() {
+    _score = 0;
     _player.x = 180;
-    _player.lives = 5;
+    _lives = _maxLives;
   }
 }
