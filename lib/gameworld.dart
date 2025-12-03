@@ -1,7 +1,7 @@
+import 'package:flutter/cupertino.dart';
+
 import 'sprites.dart';
 import 'dart:math';
-
-enum GamePhase {title, gameOn, gameOver}
 
 class GameConfig {
   final int maxLives;
@@ -34,15 +34,10 @@ final gameConfig = GameConfig(
 // size should be adjucted to screen later;
 // for now it is 360x640, fitting the safe area in old phones
 class GameWorld {
-  final Player _player = Player(x: 180, y: 560);
-  final int _maxLives;
-  final double width;
-  final double height;
-  final double _spawnInterval;
-  final double _enemyBulletInterval;
-  final double _playerBulletInterval;
+  final GameConfig config;
   final Random r;
-  GamePhase gamePhase = GamePhase.title;
+  final Player _player;
+  final VoidCallback onGameOver;
   int _score = 0;
   List<Enemy> _enemies = [];
   List<EnemyBullet> _enemyBullets = [];
@@ -55,40 +50,20 @@ class GameWorld {
   double _playerBulletTimer;
 
   GameWorld({
-    required int maxLives,
-    required this.width,
-    required this.height,
-    required double spawnInterval,
-    required double enemyBulletInterval,
-    required double playerBulletInterval,
+    required this.config,
+    required this.onGameOver,
     Random? random,
-  }
-  )
+  })
   : r = random ?? Random(),
-  _maxLives = maxLives,
-  _lives = maxLives,
-  _spawnInterval = spawnInterval,
-  _spawnTimer = spawnInterval,
-  _enemyBulletInterval = enemyBulletInterval,
-  _playerBulletInterval = playerBulletInterval,
-  _playerBulletTimer = playerBulletInterval;
-
-  factory GameWorld.fromConfig({
-    required GameConfig config,
-    Random? random,}
-  ) {
-    return GameWorld(
-      maxLives: config.maxLives,
-      width: config.width,
-      height: config.height,
-      spawnInterval: config.spawnInterval,
-      enemyBulletInterval: config.enemyBulletInterval,
-      playerBulletInterval: config.playerBulletInterval,
-    );
-  }
+  _player = Player(x: config.width/2, y: config.height*7/8),
+  _lives = config.maxLives,
+  _spawnTimer = config.spawnInterval * 6,
+  _playerBulletTimer = config.playerBulletInterval;
 
   int get lives => _lives;
   int get score => _score;
+  double get width => config.width;
+  double get height => config.height;
 
   void update(Duration elapsed) {
     sprites = [_player, ..._enemies, ..._enemyBullets, ..._playerBullets];
@@ -106,7 +81,7 @@ class GameWorld {
   }
 
   void adjustPlayerPosition(double dx) {
-    _player.x = min(max(0, _player.x + dx), width);
+    _player.x = min(max(0, _player.x + dx), config.width);
     debugText = "${_player.x}";
   }
 
@@ -165,7 +140,7 @@ class GameWorld {
     for (final s in sprites) {
       for (final cond in s.deathConditions) {
         switch (cond) {
-          case DeathCondition.atLowerEdge: if (height<s.y) {
+          case DeathCondition.atLowerEdge: if (config.height<s.y) {
             s.isDead = true;
             if (s is Enemy) {_lives = max(0, _lives-1);}
           }
@@ -187,16 +162,16 @@ class GameWorld {
   void _createEnemies(double dt) {
     _spawnTimer -= dt;
     if (_spawnTimer <= 0) {
-      _spawnTimer = _spawnInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
-      final double x = r.nextDouble() * width;
-      _enemies.add(Enemy(x: x, y: 0, fireInterval: _enemyBulletInterval));
+      _spawnTimer = config.spawnInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
+      final double x = r.nextDouble() * config.width;
+      _enemies.add(Enemy(x: x, y: 0, fireInterval: config.enemyBulletInterval));
     }
   }
 
   void _createPlayerBullets(double dt) {
     _playerBulletTimer -= dt;
     if (_playerBulletTimer <= 0) {
-      _playerBulletTimer = _playerBulletInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
+      _playerBulletTimer = config.playerBulletInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
       _playerBullets.add(PlayerBullet(x: _player.x, y: _player.y-_player.size/2));
     }
   }
@@ -218,13 +193,13 @@ class GameWorld {
       _enemies = [];
       _enemyBullets = [];
       _playerBullets = [];
-      gamePhase = GamePhase.gameOver;
+      onGameOver();
     }
   }
 
   void reset() {
     _score = 0;
     _player.x = 180;
-    _lives = _maxLives;
+    _lives = config.maxLives;
   }
 }

@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'widgets.dart';
 import 'gameworld.dart';
 
+enum GamePhase {title, gameOn, gameOver}
+
 class ShootingApp extends StatelessWidget {
   const ShootingApp({super.key});
 
@@ -26,19 +28,21 @@ class GamePage extends StatefulWidget {
 }
 
 class GamePageState extends State<GamePage>
-   with SingleTickerProviderStateMixin {
+  with SingleTickerProviderStateMixin {
+  GamePhase _gamePhase = GamePhase.title;
   late final Ticker _ticker;
-  final GameWorld _gameWorld = GameWorld.fromConfig(config: gameConfig);
+  late final GameWorld _gameWorld;
   GamePageState();
 
   @override
   initState() {
     super.initState();
+    _gameWorld = GameWorld(config: gameConfig, onGameOver: _onGameOver);
     _ticker = createTicker(_onTick)..start();
   }
 
   void _onTick(Duration elapsed) {
-    if (_gameWorld.gamePhase == GamePhase.gameOn) {
+    if (_gamePhase == GamePhase.gameOn) {
       setState(
         () => _gameWorld.update(elapsed)
       );
@@ -46,12 +50,16 @@ class GamePageState extends State<GamePage>
   }
 
   void _onStart() => setState(
-    () => _gameWorld.gamePhase = GamePhase.gameOn
+    () => _gamePhase = GamePhase.gameOn
+  );
+
+  void _onGameOver() => setState(
+    () => _gamePhase = GamePhase.gameOver
   );
 
   void _onRestart() => setState(() {
     _gameWorld.reset();
-    _gameWorld.gamePhase = GamePhase.gameOn;
+    _gamePhase = GamePhase.gameOn;
   });
 
   @override
@@ -71,7 +79,7 @@ class GamePageState extends State<GamePage>
               child: Stack(
                 alignment: Alignment.center,
                 clipBehavior: Clip.hardEdge,
-                children: switch(_gameWorld.gamePhase) {
+                children: switch(_gamePhase) {
                   GamePhase.title => [
                     TitleText(
                       x: _gameWorld.width / 2,
@@ -127,8 +135,6 @@ class GamePageState extends State<GamePage>
     );
   }
 }
-
-
 
 void main() {
   runApp(ShootingApp());

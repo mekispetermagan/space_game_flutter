@@ -1,7 +1,6 @@
 
 enum DeathCondition {atLowerEdge, atUpperEdge}
 
-
 class Sprite {
   double x;
   double y;
@@ -65,7 +64,6 @@ class PlayerBullet extends Sprite {
     deathConditions: {DeathCondition.atUpperEdge},
   );
 }
-
 
 class EnemyBullet extends Sprite {
   EnemyBullet({
