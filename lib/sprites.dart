@@ -1,5 +1,5 @@
 
-enum DeathCondition {atLowerEdge, atUpperEdge, atCollision}
+enum DeathCondition {atLowerEdge, atUpperEdge}
 
 
 class Sprite {
@@ -8,6 +8,7 @@ class Sprite {
   double vx;
   double vy;
   double size;
+  bool isDead = false;
   Set<DeathCondition> deathConditions;
   final String costumePath;
 
@@ -23,6 +24,7 @@ class Sprite {
 }
 
 class Player extends Sprite {
+  int lives = 5;
   Player({
     required super.x,
     required super.y,

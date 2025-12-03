@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/foundation.dart';
 import 'widgets.dart';
 import 'gameworld.dart';
 
@@ -34,35 +35,81 @@ class GamePageState extends State<GamePage>
   initState() {
     super.initState();
     _ticker = createTicker(_onTick)..start();
-    _gameWorld.startLevel();
   }
 
-  void _onTick(Duration elapsed) => setState(
-    () => _gameWorld.update(elapsed)
+  void _onTick(Duration elapsed) {
+    if (_gameWorld.gamePhase == GamePhase.gameOn) {
+      setState(
+        () => _gameWorld.update(elapsed)
+      );
+    }
+  }
+
+  void _onStart() => setState(
+    () => _gameWorld.gamePhase = GamePhase.gameOn
   );
+
+  void _onRestart() => setState(() {
+    _gameWorld.reset();
+    _gameWorld.gamePhase = GamePhase.gameOn;
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Colors.grey[800],
       body: SafeArea(
-        child: SizedBox.expand(
+        child: Center(
           child: GestureDetector(
             onPanUpdate: (details) => setState(() =>
               _gameWorld.adjustPlayerPosition(details.delta.dx)
             ),
-            child: Stack(
-              clipBehavior: Clip.hardEdge,
-              children: <Widget>[
-                Container(
-                  width: _gameWorld.width,
-                  height: _gameWorld.height,
-                  color: Colors.black,
-                ),
-                DebugInfo(text: _gameWorld.debugText),
-                for (final sprite in _gameWorld.sprites)
-                SpriteWidget.fromSprite(sprite: sprite),
-              ],
+            child: Container(
+              width: _gameWorld.width,
+              height: _gameWorld.height,
+              color: Colors.grey[900],
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.hardEdge,
+                children: switch(_gameWorld.gamePhase) {
+                  GamePhase.title => [
+                    TitleText(
+                      x: _gameWorld.width / 2,
+                      y: _gameWorld.height * 1/3,
+                      text: "Space Shooter Game"
+                    ),
+                    PrimaryActionButton(
+                      x: _gameWorld.width / 2,
+                      y: _gameWorld.height * 2/3,
+                      text: "Start",
+                      onPressed: _onStart,
+                    ),
+                  ],
+                  GamePhase.gameOver => [
+                    TitleText(
+                      x: _gameWorld.width / 2,
+                      y: _gameWorld.height * 1/3,
+                      text: "Game Over",
+                    ),
+                    PrimaryActionButton(
+                      x: _gameWorld.width / 2,
+                      y: _gameWorld.height * 2/3,
+                      text: "Restart",
+                      onPressed: _onRestart,
+                    ),
+                  ],
+                  GamePhase.gameOn => <Widget>[
+                    if (kDebugMode) DebugInfo(text: _gameWorld.debugText),
+                    LifeDisplay(
+                      x: _gameWorld.width/2,
+                      y: 30,
+                      lives: _gameWorld.playerLives,
+                    ),
+                    for (final sprite in _gameWorld.sprites)
+                    SpriteWidget.fromSprite(sprite: sprite),
+                  ]
+                },
+              ),
             ),
           ),
         ),
