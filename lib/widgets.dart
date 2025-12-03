@@ -38,3 +38,16 @@ class SpriteWidget extends StatelessWidget {
     );
   }
 }
+
+class DebugInfo extends StatelessWidget {
+  final String text;
+  const DebugInfo({
+    required this.text,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text);
+  }
+}

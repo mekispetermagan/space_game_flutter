@@ -9,8 +9,8 @@ class Sprite {
   double vy;
   double size;
   Set<DeathCondition> deathConditions;
-
   final String costumePath;
+
   Sprite({
     required this.x,
     required this.y,
@@ -30,21 +30,24 @@ class Player extends Sprite {
     size: 90,
     vx: 0,
     vy: 0,
-    costumePath: "assets/images/player.png",
+    costumePath: "assets/images/player_bg.png",
     deathConditions: {},
   );
 }
 
 class Enemy extends Sprite {
+  final double fireInterval;
+  double fireTimer;
   Enemy({
     required super.x,
     required super.y,
-  }) :
+    required this.fireInterval,
+  }) : fireTimer = fireInterval,
     super(
       size: 60,
       vx: 0,
       vy: 60,
-      costumePath: "assets/images/enemy.png",
+      costumePath: "assets/images/enemy_bg.png",
       deathConditions: {DeathCondition.atLowerEdge},
     );
   }
@@ -75,3 +78,4 @@ class EnemyBullet extends Sprite {
     deathConditions: {DeathCondition.atLowerEdge},
   );
 }
+

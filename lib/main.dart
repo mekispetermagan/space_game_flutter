@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'widgets.dart';
 import 'gameworld.dart';
-import 'sprites.dart';
 
 class ShootingApp extends StatelessWidget {
   const ShootingApp({super.key});
@@ -34,16 +33,8 @@ class GamePageState extends State<GamePage>
   @override
   initState() {
     super.initState();
-    _gameWorld.populateWith([
-      Player(x: 200, y: 600),
-      Enemy(x: 100, y: 100),
-      Enemy(x: 200, y: 200),
-      Enemy(x: 300, y: 300),
-      PlayerBullet(x: 200, y: 400),
-      EnemyBullet(x: 300, y: 450),
-      EnemyBullet(x: 100, y: 250),
-    ]);
     _ticker = createTicker(_onTick)..start();
+    _gameWorld.startLevel();
   }
 
   void _onTick(Duration elapsed) => setState(
@@ -53,18 +44,26 @@ class GamePageState extends State<GamePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[900],
       body: SafeArea(
         child: SizedBox.expand(
-          child: Stack(
-            children: <Widget>[
-              for (final sprite in _gameWorld.sprites)
-              SpriteWidget.fromSprite(sprite: sprite),
-              Positioned(
-                left: 50,
-                top: 50,
-                child: Text("${_gameWorld.numberOfSprites} ${_gameWorld.isSomeoneDead} ${_gameWorld.conditioncounter}")
+          child: GestureDetector(
+            onPanUpdate: (details) => setState(() =>
+              _gameWorld.adjustPlayerPosition(details.delta.dx)
+            ),
+            child: Stack(
+              clipBehavior: Clip.hardEdge,
+              children: <Widget>[
+                Container(
+                  width: _gameWorld.width,
+                  height: _gameWorld.height,
+                  color: Colors.black,
                 ),
-            ],
+                DebugInfo(text: _gameWorld.debugText),
+                for (final sprite in _gameWorld.sprites)
+                SpriteWidget.fromSprite(sprite: sprite),
+              ],
+            ),
           ),
         ),
       ),
