@@ -59,7 +59,7 @@ class PlayerBullet extends Sprite {
   }) : super(
     size: 15,
     vx: 0,
-    vy: -200,
+    vy: -300,
     costumePath: "assets/images/player_bullet.png",
     deathConditions: {DeathCondition.atUpperEdge},
   );

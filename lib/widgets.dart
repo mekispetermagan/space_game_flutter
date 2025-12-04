@@ -131,7 +131,7 @@ class TitleText extends StatelessWidget {
         text,
         style: TextStyle(
           fontSize: size ?? 30,
-          color: Colors.purpleAccent[100],
+          color: Colors.purpleAccent[200],
         ),
       ),
     );

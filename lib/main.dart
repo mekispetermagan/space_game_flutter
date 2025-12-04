@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'widgets.dart';
 import 'gameconfig.dart';
@@ -36,9 +37,11 @@ class GamePageState extends State<GamePage>
     ..setReleaseMode(ReleaseMode.stop)
     ..setVolume(0.4)
     ..setPlaybackRate(1.5)
-    ..setSourceAsset("audio/Pew.wav");
-  GamePhase _gamePhase = GamePhase.title;
+    ..setSourceAsset("audio/laser_shot.wav");
+  final SharedPreferencesAsync _prefs = SharedPreferencesAsync();
+    GamePhase _gamePhase = GamePhase.title;
   int _level = 0;
+  int _highScore = 0;
   // ignore: unused_field
   late final Ticker _ticker;
   late final GameWorld _gameWorld;
@@ -57,6 +60,7 @@ class GamePageState extends State<GamePage>
     );
     _ticker = createTicker(_onTick)
       ..start();
+    _getHighScore();
   }
 
   @override
@@ -67,8 +71,10 @@ class GamePageState extends State<GamePage>
 
   void _onTick(Duration elapsed) {
     if (_gamePhase == GamePhase.gameOn) {
-      setState(
-        () => _gameWorld.update(elapsed)
+      setState(() {
+          _gameWorld.update(elapsed);
+          _checkHighScore();
+        }
       );
     }
   }
@@ -104,6 +110,21 @@ class GamePageState extends State<GamePage>
 
   void _onShoot() => _player.resume();
 
+void _checkHighScore() {
+  if (_highScore < _gameWorld.score) {
+    _setHighScore(_gameWorld.score);
+  }
+}
+
+  Future<void> _getHighScore() async {
+    _highScore = await _prefs.getInt("highscore") ?? 0;
+  }
+
+  Future<void> _setHighScore(int n) async {
+    _highScore = n;
+    await _prefs.setInt("highscore", _highScore);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,7 +138,7 @@ class GamePageState extends State<GamePage>
             child: Container(
               width: _gameWorld.width,
               height: _gameWorld.height,
-              color: Colors.grey[900],
+              color: Colors.black,
               child: Stack(
                 alignment: Alignment.center,
                 clipBehavior: Clip.hardEdge,
@@ -167,7 +188,7 @@ class GamePageState extends State<GamePage>
                     PrimaryActionButton(
                       x: _gameWorld.width / 2,
                       y: _gameWorld.height * 2/3,
-                      text: "Restart",
+                      text: "Start",
                       onPressed: _onLevelStart,
                     ),
                   ],
@@ -192,6 +213,11 @@ class GamePageState extends State<GamePage>
                       x: _gameWorld.width-60,
                       y: _gameWorld.height-30,
                       text: "Level: ${_level+1}",
+                    ),
+                    HudText(
+                      x: 75,
+                      y: _gameWorld.height-30,
+                      text: "High score: $_highScore",
                     ),
                     for (final sprite in _gameWorld.sprites)
                     SpriteWidget.fromSprite(sprite: sprite),
