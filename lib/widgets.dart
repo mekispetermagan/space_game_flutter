@@ -138,12 +138,12 @@ class TitleText extends StatelessWidget {
   }
 }
 
-class ScoreText extends StatelessWidget {
+class HudText extends StatelessWidget {
   final double x;
   final double y;
   final String text;
 
-  const ScoreText({
+  const HudText({
     required this.x,
     required this.y,
     required this.text,

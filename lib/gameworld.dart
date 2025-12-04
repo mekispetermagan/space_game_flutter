@@ -1,69 +1,54 @@
 import 'package:flutter/cupertino.dart';
-
-import 'sprites.dart';
 import 'dart:math';
-
-class GameConfig {
-  final int maxLives;
-  final double width;
-  final double height;
-  final double spawnInterval;
-  final double enemyBulletInterval;
-  final double playerBulletInterval;
-  const GameConfig({
-    required this.maxLives,
-    required this.width,
-    required this.height,
-    required this.spawnInterval,
-    required this.enemyBulletInterval,
-    required this.playerBulletInterval,
-  });
-}
-
-final gameConfig = GameConfig(
-  maxLives: 5,
-  width: 360,
-  height: 640,
-  spawnInterval: 1.5,
-  enemyBulletInterval: 2,
-  playerBulletInterval: 0.5,
-);
+import 'sprites.dart';
+import 'gameconfig.dart';
 
 // time is measured consistently in seconds, and is double
 // velocity is pixel per second
 // size should be adjucted to screen later;
 // for now it is 360x640, fitting the safe area in old phones
 class GameWorld {
-  final GameConfig config;
+  GameConfig config;
   final Random r;
   final Player _player;
+  final VoidCallback onLevelComplete;
   final VoidCallback onGameOver;
   int _score = 0;
+  int _kills = 0;
   List<Enemy> _enemies = [];
   List<EnemyBullet> _enemyBullets = [];
   List<PlayerBullet> _playerBullets = [];
   List<Sprite> sprites = [];
   double _elapsed = 0;
-  String debugText = "";
   int _lives;
   double _spawnTimer;
   double _playerBulletTimer;
 
   GameWorld({
     required this.config,
+    required this.onLevelComplete,
     required this.onGameOver,
     Random? random,
-  })
-  : r = random ?? Random(),
-  _player = Player(x: config.width/2, y: config.height*7/8),
-  _lives = config.maxLives,
-  _spawnTimer = config.spawnInterval * 6,
-  _playerBulletTimer = config.playerBulletInterval;
+  }) : r = random ?? Random(),
+    _player = Player(x: config.width/2, y: config.height*7/8),
+    _lives = config.maxLives,
+    _spawnTimer = config.spawnInterval * 2,
+    _playerBulletTimer = config.playerBulletInterval;
 
   int get lives => _lives;
   int get score => _score;
+  int get kills => _kills;
+  int get requiredKills => config.requiredKills;
   double get width => config.width;
   double get height => config.height;
+
+  void setConfig(GameConfig conf) {
+    config = conf;
+    _lives = config.maxLives;
+    _spawnTimer = config.spawnInterval * 2;
+    _playerBulletTimer = config.playerBulletInterval;
+    _kills = 0;
+  }
 
   void update(Duration elapsed) {
     sprites = [_player, ..._enemies, ..._enemyBullets, ..._playerBullets];
@@ -77,12 +62,12 @@ class GameWorld {
     _createEnemies(dt);
     _createPlayerBullets(dt);
     _createEnemyBullets(dt);
+    _checkLevelComplete();
     _checkGameOver();
   }
 
   void adjustPlayerPosition(double dx) {
     _player.x = min(max(0, _player.x + dx), config.width);
-    debugText = "${_player.x}";
   }
 
   void _moveSprites(double dt) {
@@ -110,6 +95,7 @@ class GameWorld {
           b.isDead = true;
           e.isDead = true;
           _score += 30;
+          _kills++;
           }
       }
     }
@@ -125,6 +111,7 @@ class GameWorld {
           e.isDead = true;
           _lives = max(0, _lives-1);
           _score += 15;
+          _kills++;
         }
     }
   }
@@ -188,18 +175,33 @@ class GameWorld {
     sprites.addAll(newBullets);
   }
 
+  void _checkLevelComplete() {
+    if (config.requiredKills <= _kills) {
+      _deleteSprites();
+      onLevelComplete();
+    }
+  }
+
   void _checkGameOver() {
     if (_lives == 0) {
-      _enemies = [];
-      _enemyBullets = [];
-      _playerBullets = [];
+      _deleteSprites();
       onGameOver();
     }
   }
 
+  void _deleteSprites() {
+      _enemies = [];
+      _enemyBullets = [];
+      _playerBullets = [];
+  }
+
+  void levelReset() {
+    _lives = config.maxLives;
+    _kills = 0;
+  }
+
   void reset() {
     _score = 0;
-    _player.x = 180;
-    _lives = config.maxLives;
+    levelReset();
   }
 }
