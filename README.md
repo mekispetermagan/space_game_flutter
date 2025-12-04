@@ -1,3 +1,3 @@
-# shootinggame
+# Space Shooter
 
-A new Flutter project.
+A very simple space shooter game. An exercise on developing games with Stack only; no ame engine involved.
