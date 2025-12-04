@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'dart:math';
 import 'widgets.dart';
 import 'gameconfig.dart';
@@ -31,8 +32,14 @@ class GamePage extends StatefulWidget {
 
 class GamePageState extends State<GamePage>
   with SingleTickerProviderStateMixin {
+  final AudioPlayer _player = AudioPlayer()
+    ..setReleaseMode(ReleaseMode.stop)
+    ..setVolume(0.4)
+    ..setPlaybackRate(1.5)
+    ..setSourceAsset("audio/Pew.wav");
   GamePhase _gamePhase = GamePhase.title;
   int _level = 0;
+  // ignore: unused_field
   late final Ticker _ticker;
   late final GameWorld _gameWorld;
   String debugText = "";
@@ -45,8 +52,17 @@ class GamePageState extends State<GamePage>
     _gameWorld = GameWorld(
       config: gameConfigs[0],
       onLevelComplete: _onLevelComplete,
-      onGameOver: _onGameOver);
-    _ticker = createTicker(_onTick)..start();
+      onGameOver: _onGameOver,
+      onShoot: _onShoot,
+    );
+    _ticker = createTicker(_onTick)
+      ..start();
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
   }
 
   void _onTick(Duration elapsed) {
@@ -81,8 +97,12 @@ class GamePageState extends State<GamePage>
 
   void _onRestart() => setState(() {
     _gameWorld.reset();
+    _level = 0;
+      _gameWorld.setConfig(gameConfigs[0]);
     _gamePhase = GamePhase.gameOn;
   });
+
+  void _onShoot() => _player.resume();
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +187,11 @@ class GamePageState extends State<GamePage>
                       x: 60,
                       y: 30,
                       text: "Kills: ${_gameWorld.kills}/${_gameWorld.requiredKills}",
+                    ),
+                    HudText(
+                      x: _gameWorld.width-60,
+                      y: _gameWorld.height-30,
+                      text: "Level: ${_level+1}",
                     ),
                     for (final sprite in _gameWorld.sprites)
                     SpriteWidget.fromSprite(sprite: sprite),

@@ -1,4 +1,4 @@
-class GameConfig {
+class LevelConfig {
   final int maxLives;
   final int requiredKills;
   final double width;
@@ -7,7 +7,7 @@ class GameConfig {
   final double enemyBulletInterval;
   final double playerBulletInterval;
 
-  const GameConfig({
+  const LevelConfig({
     required this.maxLives,
     required this.requiredKills,
     required this.width,
@@ -18,8 +18,8 @@ class GameConfig {
   });
 }
 
-final List<GameConfig> gameConfigs = [
-  GameConfig(
+final List<LevelConfig> gameConfigs = [
+  LevelConfig(
     maxLives: 5,
     requiredKills: 8,
     width: 360,
@@ -28,7 +28,7 @@ final List<GameConfig> gameConfigs = [
     enemyBulletInterval: 4,
     playerBulletInterval: 0.5,
   ),
-  GameConfig(
+  LevelConfig(
     maxLives: 5,
     requiredKills: 10,
     width: 360,
@@ -37,7 +37,7 @@ final List<GameConfig> gameConfigs = [
     enemyBulletInterval: 3,
     playerBulletInterval: 0.5,
   ),
-  GameConfig(
+  LevelConfig(
     maxLives: 5,
     requiredKills: 12,
     width: 360,
@@ -46,7 +46,7 @@ final List<GameConfig> gameConfigs = [
     enemyBulletInterval: 2,
     playerBulletInterval: 0.5,
   ),
-  GameConfig(
+  LevelConfig(
     maxLives: 5,
     requiredKills: 14,
     width: 360,
@@ -55,7 +55,7 @@ final List<GameConfig> gameConfigs = [
     enemyBulletInterval: 1.5,
     playerBulletInterval: 0.5,
   ),
-  GameConfig(
+  LevelConfig(
     maxLives: 5,
     requiredKills: 16,
     width: 360,
@@ -64,7 +64,7 @@ final List<GameConfig> gameConfigs = [
     enemyBulletInterval: 1.4,
     playerBulletInterval: 0.5,
   ),
-  GameConfig(
+  LevelConfig(
     maxLives: 5,
     requiredKills: 18,
     width: 360,

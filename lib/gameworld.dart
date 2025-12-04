@@ -8,9 +8,10 @@ import 'gameconfig.dart';
 // size should be adjucted to screen later;
 // for now it is 360x640, fitting the safe area in old phones
 class GameWorld {
-  GameConfig config;
+  LevelConfig config;
   final Random r;
   final Player _player;
+  final VoidCallback onShoot;
   final VoidCallback onLevelComplete;
   final VoidCallback onGameOver;
   int _score = 0;
@@ -26,6 +27,7 @@ class GameWorld {
 
   GameWorld({
     required this.config,
+    required this.onShoot,
     required this.onLevelComplete,
     required this.onGameOver,
     Random? random,
@@ -42,7 +44,7 @@ class GameWorld {
   double get width => config.width;
   double get height => config.height;
 
-  void setConfig(GameConfig conf) {
+  void setConfig(LevelConfig conf) {
     config = conf;
     _lives = config.maxLives;
     _spawnTimer = config.spawnInterval * 2;
@@ -160,6 +162,7 @@ class GameWorld {
     if (_playerBulletTimer <= 0) {
       _playerBulletTimer = config.playerBulletInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
       _playerBullets.add(PlayerBullet(x: _player.x, y: _player.y-_player.size/2));
+      onShoot();
     }
   }
 
