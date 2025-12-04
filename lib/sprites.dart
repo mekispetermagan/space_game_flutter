@@ -1,24 +1,26 @@
 
-enum DeathCondition {atLowerEdge, atUpperEdge}
-
-class Sprite {
+abstract class Sprite {
+  /// Coordinate system and bounds:
+  /// - `x`/`y` are the sprite's center position in logical pixels.
+  /// - A sprite is considered in-bounds as long as its center is within
+  ///   the game area; it may be visually clipped at the edges.
+  /// - Edge checks use the center, collision checks center and size
   double x;
   double y;
-  double vx;
-  double vy;
-  double size;
-  bool isDead = false;
-  Set<DeathCondition> deathConditions;
+  final double vy;
+  /// Logical size in pixels. Interpreted as both
+  /// - the sprite’s rendered width, and
+  /// - the diameter of its hit circle.
+  final double size;
   final String costumePath;
+  bool isDead = false;
 
   Sprite({
     required this.x,
     required this.y,
-    required this.vx,
     required this.vy,
     required this.size,
     required this.costumePath,
-    required this.deathConditions,
   });
 }
 
@@ -26,13 +28,12 @@ class Player extends Sprite {
   Player({
     required super.x,
     required super.y,
-  }) : super(
-    size: 90,
-    vx: 0,
-    vy: 0,
-    costumePath: "assets/images/player_bg.png",
-    deathConditions: {},
-  );
+  })
+  : super(
+      size: 90,
+      vy: 0,
+      costumePath: "assets/images/player_bg.png",
+    );
 }
 
 class Enemy extends Sprite {
@@ -42,39 +43,37 @@ class Enemy extends Sprite {
     required super.x,
     required super.y,
     required this.fireInterval,
-  }) : fireTimer = fireInterval,
+  })
+  : fireTimer = fireInterval,
     super(
       size: 60,
-      vx: 0,
       vy: 60,
       costumePath: "assets/images/enemy_bg.png",
-      deathConditions: {DeathCondition.atLowerEdge},
     );
-  }
+}
 
 class PlayerBullet extends Sprite {
   PlayerBullet({
     required super.x,
     required super.y,
-  }) : super(
-    size: 15,
-    vx: 0,
-    vy: -300,
-    costumePath: "assets/images/player_bullet.png",
-    deathConditions: {DeathCondition.atUpperEdge},
-  );
+  })
+  : super(
+      size: 15,
+      vy: -300,
+      costumePath: "assets/images/player_bullet.png",
+    );
 }
 
 class EnemyBullet extends Sprite {
   EnemyBullet({
     required super.x,
     required super.y,
-  }) : super(
-    size: 6,
-    vx: 0,
-    vy: 200,
-    costumePath: "assets/images/enemy_bullet.png",
-    deathConditions: {DeathCondition.atLowerEdge},
-  );
+  })
+
+  : super(
+      size: 6,
+      vy: 200,
+      costumePath: "assets/images/enemy_bullet.png",
+    );
 }
 

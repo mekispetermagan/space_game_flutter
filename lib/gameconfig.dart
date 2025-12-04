@@ -3,6 +3,7 @@ class LevelConfig {
   final int requiredKills;
   final double width;
   final double height;
+  /// All interval fields are in seconds
   final double spawnInterval;
   final double enemyBulletInterval;
   final double playerBulletInterval;
@@ -19,8 +20,7 @@ class LevelConfig {
 }
 
 final List<LevelConfig> gameConfigs = [
-  // level 0, displayed as 1
-  LevelConfig(
+  const LevelConfig(
     maxLives: 5,
     requiredKills: 8,
     width: 360,
@@ -29,7 +29,6 @@ final List<LevelConfig> gameConfigs = [
     enemyBulletInterval: 3,
     playerBulletInterval: 0.5,
   ),
-  // level 1, displayed as 2
   LevelConfig(
     maxLives: 5,
     requiredKills: 10,
@@ -39,8 +38,7 @@ final List<LevelConfig> gameConfigs = [
     enemyBulletInterval: 2,
     playerBulletInterval: 0.5,
   ),
-  // level 2, displayed as 3
-  LevelConfig(
+  const LevelConfig(
     maxLives: 5,
     requiredKills: 12,
     width: 360,
@@ -49,8 +47,7 @@ final List<LevelConfig> gameConfigs = [
     enemyBulletInterval: 1.7,
     playerBulletInterval: 0.5,
   ),
-  // level 3, displayed as 4
-  LevelConfig(
+  const LevelConfig(
     maxLives: 5,
     requiredKills: 14,
     width: 360,
@@ -59,8 +56,7 @@ final List<LevelConfig> gameConfigs = [
     enemyBulletInterval: 1.6,
     playerBulletInterval: 0.5,
   ),
-  // level 4, displayed as 5
-  LevelConfig(
+  const LevelConfig(
     maxLives: 5,
     requiredKills: 16,
     width: 360,
@@ -69,8 +65,7 @@ final List<LevelConfig> gameConfigs = [
     enemyBulletInterval: 1.5,
     playerBulletInterval: 0.5,
   ),
-  // level 5, displayed as 6
-  LevelConfig(
+  const LevelConfig(
     maxLives: 5,
     requiredKills: 18,
     width: 360,
@@ -79,8 +74,7 @@ final List<LevelConfig> gameConfigs = [
     enemyBulletInterval: 1.4,
     playerBulletInterval: 0.5,
   ),
-  // level 6, displayed as 7
-  LevelConfig(
+  const LevelConfig(
     maxLives: 5,
     requiredKills: 18,
     width: 360,
@@ -89,8 +83,7 @@ final List<LevelConfig> gameConfigs = [
     enemyBulletInterval: 1.4,
     playerBulletInterval: 0.5,
   ),
-  // level 7, displayed as 8
-  LevelConfig(
+  const LevelConfig(
     maxLives: 5,
     requiredKills: 20,
     width: 360,

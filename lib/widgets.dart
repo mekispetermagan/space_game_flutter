@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'sprites.dart';
 
+/// Positions [child] so that (x, y) is its visual center in the parent's Stack.
 class CenterPositioned extends StatelessWidget {
   final double x;
   final double y;
@@ -40,12 +41,15 @@ class SpriteWidget extends StatelessWidget {
 
   SpriteWidget.fromSprite({
     required Sprite sprite,
-    super.key
+    Key? key,
   })
-  : x = sprite.x,
-    y = sprite.y,
-    costumePath = sprite.costumePath,
-    size = sprite.size;
+  : this(
+      x: sprite.x,
+      y: sprite.y,
+      costumePath: sprite.costumePath,
+      size: sprite.size,
+      key: key,
+    );
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +81,8 @@ class DebugInfo extends StatelessWidget {
   }
 }
 
+/// The display only works with up to five lives;
+/// beyond that hud elements will overlap.
 class LifeDisplay extends StatelessWidget {
   final double x;
   final double y;

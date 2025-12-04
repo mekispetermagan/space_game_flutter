@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/foundation.dart';
+// only used in debug:
+// import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
@@ -16,7 +17,7 @@ class ShootingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: GamePage(),
+      home: const GamePage(),
       theme: ThemeData.dark(),
     );
   }
@@ -40,14 +41,14 @@ class GamePageState extends State<GamePage>
     ..setSourceAsset("audio/laser_shot.wav");
   final SharedPreferencesAsync _prefs = SharedPreferencesAsync();
     GamePhase _gamePhase = GamePhase.title;
+  /// Level count is 0-based, but displayed as 1-based:
+  /// Level 3 is displayed as level 4
   int _level = 0;
   int _highScore = 0;
-  // ignore: unused_field
   late final Ticker _ticker;
   late final GameWorld _gameWorld;
-  String debugText = "";
-
-  GamePageState();
+  // used only for debugging:
+  // String _debugText = "";
 
   @override
   initState() {
@@ -65,6 +66,7 @@ class GamePageState extends State<GamePage>
 
   @override
   void dispose() {
+    _ticker.dispose();
     _player.dispose();
     super.dispose();
   }
@@ -87,14 +89,13 @@ class GamePageState extends State<GamePage>
     () => _gamePhase = GamePhase.gameOver
   );
 
-  void _onLevelComplete() {
-    _gameWorld.levelReset();
+  void _onLevelComplete() => setState(() {
     _level += 1;
     _gamePhase = GamePhase.levelChange;
-  }
+  });
 
   void _onLevelStart() => setState(() {
-      _gameWorld.setConfig(
+      _gameWorld.startLevel(
         gameConfigs[min(_level, gameConfigs.length-1)]
       );
       _gamePhase = GamePhase.gameOn;
@@ -102,22 +103,25 @@ class GamePageState extends State<GamePage>
   );
 
   void _onRestart() => setState(() {
-    _gameWorld.reset();
     _level = 0;
-      _gameWorld.setConfig(gameConfigs[0]);
+      _gameWorld.restartGame(gameConfigs[0]);
     _gamePhase = GamePhase.gameOn;
   });
 
-  void _onShoot() => _player.resume();
-
-void _checkHighScore() {
-  if (_highScore < _gameWorld.score) {
-    _setHighScore(_gameWorld.score);
+  Future<void> _onShoot() async {
+    await _player.seek(Duration.zero);
+    _player.resume();
   }
-}
+
+  void _checkHighScore() {
+    if (_highScore < _gameWorld.score) {
+      _setHighScore(_gameWorld.score);
+    }
+  }
 
   Future<void> _getHighScore() async {
-    _highScore = await _prefs.getInt("highscore") ?? 0;
+    final storedHs = await _prefs.getInt("highscore") ?? 0;
+    setState(() => _highScore = storedHs);
   }
 
   Future<void> _setHighScore(int n) async {
@@ -193,7 +197,8 @@ void _checkHighScore() {
                     ),
                   ],
                   GamePhase.gameOn => <Widget>[
-                    if (kDebugMode) DebugInfo(text: "level: $_level"),
+                    // used only for debugging:
+                    // if (kDebugMode) DebugInfo(text: "Debug info: $_debugText"),
                     LifeDisplay(
                       x: _gameWorld.width/2,
                       y: 30,
@@ -233,5 +238,5 @@ void _checkHighScore() {
 }
 
 void main() {
-  runApp(ShootingApp());
+  runApp(const ShootingApp());
 }

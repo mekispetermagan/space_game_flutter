@@ -3,15 +3,17 @@ import 'dart:math';
 import 'sprites.dart';
 import 'gameconfig.dart';
 
-// time is measured consistently in seconds, and is double
-// velocity is pixel per second
-// size should be adjucted to screen later;
-// for now it is 360x640, fitting the safe area in old phones
+/// Time is measured consistently in seconds, and is double
+/// (Duration is expressed in milliseconds and divided by 1000)
+/// Velocity is measured in pixel per second
+/// Game area dimensions are fixed in config as 360x640,
+/// fitting the safe area in old phones
+//  TODO: adjust world to screen dimensions
 class GameWorld {
   LevelConfig config;
   final Random r;
   final Player _player;
-  final VoidCallback onShoot;
+  final Future<void> Function() onShoot;
   final VoidCallback onLevelComplete;
   final VoidCallback onGameOver;
   int _score = 0;
@@ -19,8 +21,8 @@ class GameWorld {
   List<Enemy> _enemies = [];
   List<EnemyBullet> _enemyBullets = [];
   List<PlayerBullet> _playerBullets = [];
-  List<Sprite> sprites = [];
-  double _elapsed = 0;
+  /// Last frame's global time in seconds
+  double _lastElapsed = 0;
   int _lives;
   double _spawnTimer;
   double _playerBulletTimer;
@@ -43,24 +45,40 @@ class GameWorld {
   int get requiredKills => config.requiredKills;
   double get width => config.width;
   double get height => config.height;
+  List<Sprite> get sprites => [
+      _player,
+      ..._enemies,
+      ..._enemyBullets,
+      ..._playerBullets
+    ];
 
-  void setConfig(LevelConfig conf) {
-    config = conf;
+  void restartGame(LevelConfig restartConfig) {
+    _score = 0;
+    startLevel(restartConfig);
+  }
+
+  // config is replaced at every new level
+  void startLevel(LevelConfig newConfig) {
+    config = newConfig;
+    // lives are reset at every level
     _lives = config.maxLives;
     _spawnTimer = config.spawnInterval * 2;
     _playerBulletTimer = config.playerBulletInterval;
     _kills = 0;
+    // player can only move horizontally
+    _player.x = config.width / 2;
   }
 
+  // called at every frame: holds per-frame game logic together
   void update(Duration elapsed) {
-    sprites = [_player, ..._enemies, ..._enemyBullets, ..._playerBullets];
     final double e = elapsed.inMilliseconds / 1000;
-    final double dt = e - _elapsed;
-    _elapsed = e;
+    final double dt = e - _lastElapsed;
+    _lastElapsed = e;
+    if (dt <= 0) return;
     _moveSprites(dt);
     _checkCollisions();
-    _checkDeathConditions();
-    _removeDead();
+    _checkEdgeCollisions();
+    _clearDeadSprites();
     _createEnemies(dt);
     _createPlayerBullets(dt);
     _createEnemyBullets(dt);
@@ -69,19 +87,23 @@ class GameWorld {
   }
 
   void adjustPlayerPosition(double dx) {
+    // player's center stays within game area
     _player.x = min(max(0, _player.x + dx), config.width);
   }
 
   void _moveSprites(double dt) {
     for (final sprite in sprites) {
-      final double dx = sprite.vx * dt;
       final double dy = sprite.vy * dt;
-      sprite.x += dx;
       sprite.y += dy;
     }
   }
 
+  // One sprite can have multiple collisions within a single frame.
+  // (Eg. a player bullet kills an enemy and an enemy bullet
+  // at the same time.)
   void _checkCollisions() {
+    // player bullet vs enemy bullet:
+    // both die, score increases
     for (final b1 in _playerBullets) {
       for (final b2 in _enemyBullets) {
         if (_collide(b1, b2)) {
@@ -91,6 +113,8 @@ class GameWorld {
         }
       }
     }
+    // player bullet vs enemy:
+    // both die, score and kills increase
     for (final b in _playerBullets) {
       for (final e in _enemies) {
         if (_collide(b, e)) {
@@ -101,6 +125,8 @@ class GameWorld {
           }
       }
     }
+    // player vs enemy bullet:
+    // bullet dies, score increases, player loses a life
     for (final b in _enemyBullets) {
         if (_collide(b, _player)) {
           b.isDead = true;
@@ -108,6 +134,8 @@ class GameWorld {
           _score += 5;
         }
     }
+    // player vs enemy:
+    // enemy dies, score increases, kills increases, player loses a life
     for (final e in _enemies) {
         if (_collide(e, _player)) {
           e.isDead = true;
@@ -118,6 +146,7 @@ class GameWorld {
     }
   }
 
+  // sprite collision uses hit circles, not hitboxes
   bool _collide(Sprite s1, Sprite s2) {
     final double dx = s1.x-s2.x;
     final double dy = s1.y-s2.y;
@@ -125,23 +154,30 @@ class GameWorld {
     return dx*dx + dy*dy < limit * limit;
   }
 
-  void _checkDeathConditions() {
-    for (final s in sprites) {
-      for (final cond in s.deathConditions) {
-        switch (cond) {
-          case DeathCondition.atLowerEdge: if (config.height<s.y) {
-            s.isDead = true;
-            if (s is Enemy) {_lives = max(0, _lives-1);}
-          }
-          case DeathCondition.atUpperEdge: if (s.y<0) {
-            s.isDead = true;
-          }
-        }
+  // sprites' center stays within game area
+  void _checkEdgeCollisions() {
+    // enemy vs lower edge: enemy dies, player loses a life
+    for (final e in _enemies) {
+      if (config.height<e.y) {
+        e.isDead = true;
+        _lives = max(0, _lives-1);
+      }
+    }
+    // enemy bullet vs lower edge: bullet dies
+    for (final b in _enemyBullets) {
+      if (config.height<b.y) {
+        b.isDead = true;
+      }
+    }
+    // player bullet vs upper edge: bullet dies
+    for (final b in _playerBullets) {
+      if (b.y<0) {
+        b.isDead = true;
       }
     }
   }
 
-  void _removeDead() {
+  void _clearDeadSprites() {
     _enemies = [ for (final e in _enemies) if (!e.isDead) e ];
     _enemyBullets = [ for (final b in _enemyBullets) if (!b.isDead) b ];
     _playerBullets = [ for (final b in _playerBullets) if (!b.isDead) b ];
@@ -151,7 +187,8 @@ class GameWorld {
   void _createEnemies(double dt) {
     _spawnTimer -= dt;
     if (_spawnTimer <= 0) {
-      _spawnTimer = config.spawnInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
+      _spawnTimer = config.spawnInterval * (0.9 + 0.2 * r.nextDouble());
+      // enemy's center is within game area
       final double x = r.nextDouble() * config.width;
       _enemies.add(Enemy(x: x, y: 0, fireInterval: config.enemyBulletInterval));
     }
@@ -160,51 +197,39 @@ class GameWorld {
   void _createPlayerBullets(double dt) {
     _playerBulletTimer -= dt;
     if (_playerBulletTimer <= 0) {
-      _playerBulletTimer = config.playerBulletInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
+      _playerBulletTimer = config.playerBulletInterval * (0.9 + 0.2 * r.nextDouble());
       _playerBullets.add(PlayerBullet(x: _player.x, y: _player.y-_player.size/2));
       onShoot();
     }
   }
 
   void _createEnemyBullets(double dt) {
-    List<Sprite> newBullets = [];
     for (final enemy in _enemies) {
         enemy.fireTimer -= dt;
-    if (enemy.fireTimer <= 0) {
-      enemy.fireTimer = enemy.fireInterval * (0.9 + 0.2 * r.nextDouble()); // approx 1.5s
-      _enemyBullets.add(EnemyBullet(x: enemy.x, y: enemy.y+enemy.size/2));
-    }
+      if (enemy.fireTimer <= 0) {
+        enemy.fireTimer = enemy.fireInterval * (0.9 + 0.2 * r.nextDouble());
+        _enemyBullets.add(EnemyBullet(x: enemy.x, y: enemy.y+enemy.size/2));
       }
-    sprites.addAll(newBullets);
+    }
   }
 
   void _checkLevelComplete() {
     if (config.requiredKills <= _kills) {
-      _deleteSprites();
+      _clearLevelData();
       onLevelComplete();
     }
   }
 
   void _checkGameOver() {
     if (_lives == 0) {
-      _deleteSprites();
+      _clearLevelData();
       onGameOver();
     }
   }
 
-  void _deleteSprites() {
-      _enemies = [];
-      _enemyBullets = [];
-      _playerBullets = [];
-  }
-
-  void levelReset() {
-    _lives = config.maxLives;
-    _kills = 0;
-  }
-
-  void reset() {
-    _score = 0;
-    levelReset();
+  void _clearLevelData() {
+    _enemies = [];
+    _enemyBullets = [];
+    _playerBullets = [];
   }
 }
