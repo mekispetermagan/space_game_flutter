@@ -1,4 +1,3 @@
-
 abstract class Sprite {
   /// Coordinate system and bounds:
   /// - `x`/`y` are the sprite's center position in logical pixels.
@@ -12,7 +11,7 @@ abstract class Sprite {
   /// - the sprite’s rendered width, and
   /// - the diameter of its hit circle.
   final double size;
-  final String costumePath;
+  final String costumePrefix;
   bool isDead = false;
 
   Sprite({
@@ -20,7 +19,7 @@ abstract class Sprite {
     required this.y,
     required this.vy,
     required this.size,
-    required this.costumePath,
+    required this.costumePrefix,
   });
 }
 
@@ -32,7 +31,7 @@ class Player extends Sprite {
   : super(
       size: 75,
       vy: 0,
-      costumePath: "assets/images/player_emoji.png",
+      costumePrefix: "player",
     );
 }
 
@@ -48,7 +47,7 @@ class Enemy extends Sprite {
     super(
       size: 60,
       vy: 60,
-      costumePath: "assets/images/enemy_emoji1.png",
+      costumePrefix: "enemy",
     );
 }
 
@@ -60,7 +59,7 @@ class PlayerBullet extends Sprite {
   : super(
       size: 30,
       vy: -300,
-      costumePath: "assets/images/player_bullet_emoji.png",
+      costumePrefix: "player_bullet",
     );
 }
 
@@ -73,7 +72,7 @@ class EnemyBullet extends Sprite {
   : super(
       size: 15,
       vy: 200,
-      costumePath: "assets/images/enemy_bullet_emoji.png",
+      costumePrefix: "enemy_bullet",
     );
 }
 

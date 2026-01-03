@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:math';
-import 'sprites.dart';
-import 'gameconfig.dart';
+import 'package:shootinggame/sprites.dart';
+import 'package:shootinggame/gameconfig.dart';
 
 /// Time is measured consistently in seconds, and is double
 /// (Duration is expressed in milliseconds and divided by 1000)
@@ -39,7 +39,10 @@ class GameWorld {
     _spawnTimer = config.spawnInterval * 2,
     _playerBulletTimer = config.playerBulletInterval
   {
-    _player = Player(x: width/2, y: height*7/8);
+    _player = Player(
+      x: width/2,
+      y: height*7/8,
+    );
   }
 
   int get lives => _lives;
@@ -184,14 +187,17 @@ class GameWorld {
     _playerBullets = [ for (final b in _playerBullets) if (!b.isDead) b ];
   }
 
-
   void _createEnemies(double dt) {
     _spawnTimer -= dt;
     if (_spawnTimer <= 0) {
       _spawnTimer = config.spawnInterval * (0.9 + 0.2 * r.nextDouble());
       // enemy's center is within game area
       final double x = r.nextDouble() * width;
-      _enemies.add(Enemy(x: x, y: 0, fireInterval: config.enemyBulletInterval));
+      _enemies.add(Enemy(
+        x: x,
+        y: 0,
+        fireInterval: config.enemyBulletInterval,
+      ));
     }
   }
 
@@ -199,7 +205,10 @@ class GameWorld {
     _playerBulletTimer -= dt;
     if (_playerBulletTimer <= 0) {
       _playerBulletTimer = config.playerBulletInterval * (0.9 + 0.2 * r.nextDouble());
-      _playerBullets.add(PlayerBullet(x: _player.x, y: _player.y-_player.size/2));
+      _playerBullets.add(PlayerBullet(
+        x: _player.x,
+        y: _player.y-_player.size/2,
+      ));
       onShoot();
     }
   }
@@ -209,7 +218,10 @@ class GameWorld {
         enemy.fireTimer -= dt;
       if (enemy.fireTimer <= 0) {
         enemy.fireTimer = enemy.fireInterval * (0.9 + 0.2 * r.nextDouble());
-        _enemyBullets.add(EnemyBullet(x: enemy.x, y: enemy.y+enemy.size/2));
+        _enemyBullets.add(EnemyBullet(
+          x: enemy.x,
+          y: enemy.y+enemy.size/2,
+        ));
       }
     }
   }

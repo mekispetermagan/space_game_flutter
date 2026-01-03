@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'widgets.dart';
-import 'sprites.dart';
+import 'package:shootinggame/widgets.dart';
+import 'package:shootinggame/sprites.dart';
 
 class TitleScreen {
   List<Widget> content;
@@ -8,20 +8,28 @@ class TitleScreen {
     required double width,
     required double height,
     required double zoom,
-    required VoidCallback onStart,
+    required VoidCallback onCuteStart,
+    required VoidCallback onSpaceStart,
   }) : content = [
     TitleText(
       x: width / 2,
-      y: height * 1/3,
+      y: height * 1/4,
       zoom: zoom,
-      text: "Space Shooter Game"
+      text: "Shooter Game"
     ),
     PrimaryActionButton(
       x: width / 2,
-      y: height * 2/3,
+      y: height * 1/2,
       zoom: zoom,
-      text: "Start",
-      onPressed: onStart,
+      text: "Cute mode",
+      onPressed: onCuteStart,
+    ),
+    PrimaryActionButton(
+      x: width / 2,
+      y: height * 3/4,
+      zoom: zoom,
+      text: "Space mode",
+      onPressed: onSpaceStart,
     ),
   ];
 }
@@ -95,6 +103,7 @@ class GameScreen {
     required double width,
     required double height,
     required double zoom,
+    required GameTheme theme,
     required int level,
     required int lives,
     required int kills,
@@ -108,6 +117,7 @@ class GameScreen {
       y: 30,
       zoom: zoom,
       lives: lives,
+      theme: theme,
     ),
     HudText(
       x: width-60,
@@ -137,6 +147,7 @@ class GameScreen {
     SpriteWidget.fromSprite(
       sprite: sprite,
       zoom: zoom,
+      theme: theme,
       ),
   ];
 }

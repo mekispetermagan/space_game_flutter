@@ -5,12 +5,13 @@ import 'package:flutter/scheduler.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
-import 'statecontroller.dart';
-import 'screens.dart';
-import 'gameconfig.dart';
-import 'gameworld.dart';
+import 'package:shootinggame/widgets.dart' show GameTheme;
+import 'package:shootinggame/statecontroller.dart';
+import 'package:shootinggame/screens.dart';
+import 'package:shootinggame/gameconfig.dart';
+import 'package:shootinggame/gameworld.dart';
 
-enum GamePhase {title, gameOn, levelChange, gameOver}
+enum GamePhase { title, gameOn, levelChange, gameOver }
 
 class ShootingApp extends StatelessWidget {
   const ShootingApp({super.key});
@@ -48,6 +49,7 @@ class GamePageState extends State<GamePage>
   int _highScore = 0;
   late final Ticker _ticker;
   late final GameWorld _gameWorld;
+  late GameTheme _theme;
   // final _controller = StateController();
 
   @override
@@ -81,8 +83,11 @@ class GamePageState extends State<GamePage>
     }
   }
 
-  void _onStart() => setState(
-    () => _gamePhase = GamePhase.gameOn
+  void _onStart(GameTheme theme) => setState(
+    () {
+      _theme = theme;
+      _gamePhase = GamePhase.gameOn;
+      }
   );
 
   void _onGameOver() => setState(
@@ -164,7 +169,8 @@ class GamePageState extends State<GamePage>
                         width: width,
                         height: height,
                         zoom: zoom,
-                        onStart: _onStart,
+                        onCuteStart: () => _onStart(GameTheme.cute),
+                        onSpaceStart: () => _onStart(GameTheme.space),
                       ).content,
 
                       GamePhase.gameOver => GameOverScreen(
@@ -188,6 +194,7 @@ class GamePageState extends State<GamePage>
                         width: width,
                         height: height,
                         zoom: zoom,
+                        theme: _theme,
                         level: _level+1,
                         lives: _gameWorld.lives,
                         kills: _gameWorld.kills,

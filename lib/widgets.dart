@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'sprites.dart';
+import 'package:shootinggame/sprites.dart';
+
+// cute: emojis
+// space: Star Wars
+enum GameTheme { cute, space }
 
 /// Positions [child] so that (x, y) is its visual center in the parent's Stack.
 class CenterPositioned extends StatelessWidget {
@@ -46,12 +50,16 @@ class SpriteWidget extends StatelessWidget {
   SpriteWidget.fromSprite({
     required Sprite sprite,
     required double zoom,
+    required GameTheme theme,
     Key? key,
   })
   : this(
       x: sprite.x,
       y: sprite.y,
-      costumePath: sprite.costumePath,
+      costumePath: switch(theme) {
+        GameTheme.cute => "assets/images/${sprite.costumePrefix}_cute.png",
+        GameTheme.space => "assets/images/${sprite.costumePrefix}_space.png",
+      },
       size: sprite.size,
       zoom: zoom,
       key: key,
@@ -94,15 +102,21 @@ class LifeDisplay extends StatelessWidget {
   final double y;
   final double size;
   final int lives;
+  final String path;
 
-  const LifeDisplay({
+  LifeDisplay({
     required this.x,
     required this.y,
     required double zoom,
     required this.lives,
+    required GameTheme theme,
     super.key,
   })
-  : size = 20 * zoom;
+  : size = 20 * zoom,
+    path = switch(theme) {
+        GameTheme.cute => "assets/images/player_cute.png",
+        GameTheme.space => "assets/images/player_space.png",
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +128,7 @@ class LifeDisplay extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           child: Image(
             width: size,
-            image: AssetImage("assets/images/player_emoji.png")
+            image: AssetImage(path),
           ),
         ),
         ),
