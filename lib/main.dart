@@ -6,7 +6,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 import 'package:shootinggame/widgets.dart' show GameTheme;
-import 'package:shootinggame/statecontroller.dart';
 import 'package:shootinggame/screens.dart';
 import 'package:shootinggame/gameconfig.dart';
 import 'package:shootinggame/gameworld.dart';
