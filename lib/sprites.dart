@@ -30,9 +30,9 @@ class Player extends Sprite {
     required super.y,
   })
   : super(
-      size: 90,
+      size: 75,
       vy: 0,
-      costumePath: "assets/images/player_bg.png",
+      costumePath: "assets/images/player_emoji.png",
     );
 }
 
@@ -48,7 +48,7 @@ class Enemy extends Sprite {
     super(
       size: 60,
       vy: 60,
-      costumePath: "assets/images/enemy_bg.png",
+      costumePath: "assets/images/enemy_emoji1.png",
     );
 }
 
@@ -58,9 +58,9 @@ class PlayerBullet extends Sprite {
     required super.y,
   })
   : super(
-      size: 15,
+      size: 30,
       vy: -300,
-      costumePath: "assets/images/player_bullet.png",
+      costumePath: "assets/images/player_bullet_emoji.png",
     );
 }
 
@@ -71,9 +71,9 @@ class EnemyBullet extends Sprite {
   })
 
   : super(
-      size: 6,
+      size: 15,
       vy: 200,
-      costumePath: "assets/images/enemy_bullet.png",
+      costumePath: "assets/images/enemy_bullet_emoji.png",
     );
 }
 

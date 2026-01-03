@@ -32,15 +32,20 @@ class SpriteWidget extends StatelessWidget {
   final double size;
   final String costumePath;
   const SpriteWidget({
-    required this.x,
-    required this.y,
-    required this.size,
+    required double x,
+    required double y,
+    required double size,
+    required double zoom,
     required this.costumePath,
     super.key,
-  });
+  })
+  : x = x * zoom,
+    y = y * zoom,
+    size = size * zoom;
 
   SpriteWidget.fromSprite({
     required Sprite sprite,
+    required double zoom,
     Key? key,
   })
   : this(
@@ -48,6 +53,7 @@ class SpriteWidget extends StatelessWidget {
       y: sprite.y,
       costumePath: sprite.costumePath,
       size: sprite.size,
+      zoom: zoom,
       key: key,
     );
 
@@ -86,14 +92,17 @@ class DebugInfo extends StatelessWidget {
 class LifeDisplay extends StatelessWidget {
   final double x;
   final double y;
+  final double size;
   final int lives;
 
   const LifeDisplay({
     required this.x,
     required this.y,
+    required double zoom,
     required this.lives,
     super.key,
-  });
+  })
+  : size = 20 * zoom;
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +113,8 @@ class LifeDisplay extends StatelessWidget {
         children: List<Widget>.generate(lives, (_) => Padding(
           padding: const EdgeInsets.all(3),
           child: Image(
-            width: 20,
-            image: AssetImage("assets/images/player_bg.png")
+            width: size,
+            image: AssetImage("assets/images/player_emoji.png")
           ),
         ),
         ),
@@ -118,15 +127,17 @@ class TitleText extends StatelessWidget {
   final double x;
   final double y;
   final String text;
-  final double? size;
+  final double size;
 
   const TitleText({
     required this.x,
     required this.y,
+    required double zoom,
     required this.text,
-    this.size,
+    double? size,
     super.key,
-  });
+  })
+  : size = (size ?? 30) * zoom;
 
   @override
   Widget build(BuildContext context) {
@@ -136,8 +147,8 @@ class TitleText extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: size ?? 30,
-          color: Colors.purpleAccent[200],
+          fontSize: size,
+          color: Colors.pink[200],
         ),
       ),
     );
@@ -147,11 +158,13 @@ class TitleText extends StatelessWidget {
 class HudText extends StatelessWidget {
   final double x;
   final double y;
+  final double zoom;
   final String text;
 
   const HudText({
     required this.x,
     required this.y,
+    required this.zoom,
     required this.text,
     super.key,
   });
@@ -161,6 +174,7 @@ class HudText extends StatelessWidget {
     return TitleText(
       x: x,
       y: y,
+      zoom: zoom,
       text: text,
       size: 18,
     );
@@ -171,16 +185,21 @@ class HudText extends StatelessWidget {
 class PrimaryActionButton extends StatelessWidget {
   final double x;
   final double y;
+  final double fontSize;
+  final double padding;
   final String text;
   final VoidCallback onPressed;
 
   const PrimaryActionButton({
     required this.x,
     required this.y,
+    required double zoom,
     required this.text,
     required this.onPressed,
     super.key,
-  });
+  })
+  : fontSize = 24 * zoom,
+    padding = 12 * zoom;
 
   @override
   Widget build(BuildContext context) {
@@ -194,11 +213,11 @@ class PrimaryActionButton extends StatelessWidget {
           foregroundColor: WidgetStatePropertyAll(Colors.purple[100]),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: EdgeInsets.all(padding),
           child: Text(
             text,
             style: TextStyle(
-              fontSize: 24,
+              fontSize: fontSize,
             ),
           ),
         ),

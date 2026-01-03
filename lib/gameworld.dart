@@ -6,16 +6,17 @@ import 'gameconfig.dart';
 /// Time is measured consistently in seconds, and is double
 /// (Duration is expressed in milliseconds and divided by 1000)
 /// Velocity is measured in pixel per second
-/// Game area dimensions are fixed in config as 360x640,
-/// fitting the safe area in old phones
-//  TODO: adjust world to screen dimensions
+/// Game area dimensions are fixed in config as 360x640.
+/// They are scaled in the UI to fit the screen.
 class GameWorld {
   LevelConfig config;
   final Random r;
-  final Player _player;
   final Future<void> Function() onShoot;
   final VoidCallback onLevelComplete;
   final VoidCallback onGameOver;
+  final double width = 360;
+  final double height = 640;
+  late final Player _player;
   int _score = 0;
   int _kills = 0;
   List<Enemy> _enemies = [];
@@ -34,17 +35,17 @@ class GameWorld {
     required this.onGameOver,
     Random? random,
   }) : r = random ?? Random(),
-    _player = Player(x: config.width/2, y: config.height*7/8),
     _lives = config.maxLives,
     _spawnTimer = config.spawnInterval * 2,
-    _playerBulletTimer = config.playerBulletInterval;
+    _playerBulletTimer = config.playerBulletInterval
+  {
+    _player = Player(x: width/2, y: height*7/8);
+  }
 
   int get lives => _lives;
   int get score => _score;
   int get kills => _kills;
   int get requiredKills => config.requiredKills;
-  double get width => config.width;
-  double get height => config.height;
   List<Sprite> get sprites => [
       _player,
       ..._enemies,
@@ -66,7 +67,7 @@ class GameWorld {
     _playerBulletTimer = config.playerBulletInterval;
     _kills = 0;
     // player can only move horizontally
-    _player.x = config.width / 2;
+    _player.x = width / 2;
   }
 
   // called at every frame: holds per-frame game logic together
@@ -88,7 +89,7 @@ class GameWorld {
 
   void adjustPlayerPosition(double dx) {
     // player's center stays within game area
-    _player.x = min(max(0, _player.x + dx), config.width);
+    _player.x = min(max(0, _player.x + dx), width);
   }
 
   void _moveSprites(double dt) {
@@ -158,14 +159,14 @@ class GameWorld {
   void _checkEdgeCollisions() {
     // enemy vs lower edge: enemy dies, player loses a life
     for (final e in _enemies) {
-      if (config.height<e.y) {
+      if (height<e.y) {
         e.isDead = true;
         _lives = max(0, _lives-1);
       }
     }
     // enemy bullet vs lower edge: bullet dies
     for (final b in _enemyBullets) {
-      if (config.height<b.y) {
+      if (height<b.y) {
         b.isDead = true;
       }
     }
@@ -189,7 +190,7 @@ class GameWorld {
     if (_spawnTimer <= 0) {
       _spawnTimer = config.spawnInterval * (0.9 + 0.2 * r.nextDouble());
       // enemy's center is within game area
-      final double x = r.nextDouble() * config.width;
+      final double x = r.nextDouble() * width;
       _enemies.add(Enemy(x: x, y: 0, fireInterval: config.enemyBulletInterval));
     }
   }

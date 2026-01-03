@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
+import 'statecontroller.dart';
 import 'widgets.dart';
 import 'gameconfig.dart';
 import 'gameworld.dart';
@@ -47,6 +48,7 @@ class GamePageState extends State<GamePage>
   int _highScore = 0;
   late final Ticker _ticker;
   late final GameWorld _gameWorld;
+  // final _controller = StateController();
   // used only for debugging:
   // String _debugText = "";
 
@@ -134,103 +136,134 @@ class GamePageState extends State<GamePage>
     return Scaffold(
       backgroundColor: Colors.grey[800],
       body: SafeArea(
-        child: Center(
-          child: GestureDetector(
-            onPanUpdate: (details) => setState(() =>
-              _gameWorld.adjustPlayerPosition(details.delta.dx)
-            ),
-            child: Container(
-              width: _gameWorld.width,
-              height: _gameWorld.height,
-              color: Colors.black,
-              child: Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.hardEdge,
-                children: switch(_gamePhase) {
-                  GamePhase.title => [
-                    TitleText(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height * 1/3,
-                      text: "Space Shooter Game"
-                    ),
-                    PrimaryActionButton(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height * 2/3,
-                      text: "Start",
-                      onPressed: _onStart,
-                    ),
-                  ],
-                  GamePhase.gameOver => [
-                    TitleText(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height * 1/3,
-                      text: "Game Over",
-                    ),
-                    HudText(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height / 2,
-                      text: "Score: ${_gameWorld.score}",
-                    ),
-                    PrimaryActionButton(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height * 2/3,
-                      text: "Restart",
-                      onPressed: _onRestart,
-                    ),
-                  ],
-                  GamePhase.levelChange => [
-                    TitleText(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height * 1/3,
-                      text: "Level ${_level+1}",
-                    ),
-                    HudText(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height / 2,
-                      text: "Score: ${_gameWorld.score}",
-                    ),
-                    PrimaryActionButton(
-                      x: _gameWorld.width / 2,
-                      y: _gameWorld.height * 2/3,
-                      text: "Start",
-                      onPressed: _onLevelStart,
-                    ),
-                  ],
-                  GamePhase.gameOn => <Widget>[
-                    // used only for debugging:
-                    // if (kDebugMode) DebugInfo(text: "Debug info: $_debugText"),
-                    LifeDisplay(
-                      x: _gameWorld.width/2,
-                      y: 30,
-                      lives: _gameWorld.lives,
-                    ),
-                    HudText(
-                      x: _gameWorld.width-60,
-                      y: 30,
-                      text: "Score: ${_gameWorld.score}",
-                    ),
-                    HudText(
-                      x: 60,
-                      y: 30,
-                      text: "Kills: ${_gameWorld.kills}/${_gameWorld.requiredKills}",
-                    ),
-                    HudText(
-                      x: _gameWorld.width-60,
-                      y: _gameWorld.height-30,
-                      text: "Level: ${_level+1}",
-                    ),
-                    HudText(
-                      x: 75,
-                      y: _gameWorld.height-30,
-                      text: "High score: $_highScore",
-                    ),
-                    for (final sprite in _gameWorld.sprites)
-                    SpriteWidget.fromSprite(sprite: sprite),
-                  ]
-                },
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final ratio = _gameWorld.width / _gameWorld.height;
+            double width, height;
+            if (constraints.maxWidth / ratio <  constraints.maxHeight) {
+              width = constraints.maxWidth;
+              height = width / ratio;
+            } else {
+              height = constraints.maxHeight;
+              width = height * ratio;
+            }
+            final double zoom = width / _gameWorld.width;
+
+            return GestureDetector(
+              onPanUpdate: (details) => setState(() =>
+                _gameWorld.adjustPlayerPosition(details.delta.dx)
               ),
-            ),
-          ),
+              child: Center(
+                child: Container(
+                  width: width,
+                  height: height,
+                  color: Colors.black,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.hardEdge,
+                    children: switch(_gamePhase) {
+                      GamePhase.title => [
+                        TitleText(
+                          x: _gameWorld.width / 2,
+                          y: _gameWorld.height * 1/3,
+                          zoom: zoom,
+                          text: "Space Shooter Game"
+                        ),
+                        PrimaryActionButton(
+                          x: width / 2,
+                          y: height * 2/3,
+                          zoom: zoom,
+                          text: "Start",
+                          onPressed: _onStart,
+                        ),
+                      ],
+                      GamePhase.gameOver => [
+                        TitleText(
+                          x: width / 2,
+                          y: height * 1/3,
+                          zoom: zoom,
+                          text: "Game Over",
+                        ),
+                        HudText(
+                          x: width / 2,
+                          y: height / 2,
+                          zoom: zoom,
+                          text: "Score: ${_gameWorld.score}",
+                        ),
+                        PrimaryActionButton(
+                          x: width / 2,
+                          y: height * 2/3,
+                          zoom: zoom,
+                          text: "Restart",
+                          onPressed: _onRestart,
+                        ),
+                      ],
+                      GamePhase.levelChange => [
+                        TitleText(
+                          x: width / 2,
+                          y: height * 1/3,
+                          zoom: zoom,
+                          text: "Level ${_level+1}",
+                        ),
+                        HudText(
+                          x: width / 2,
+                          y: height / 2,
+                          zoom: zoom,
+                          text: "Score: ${_gameWorld.score}",
+                        ),
+                        PrimaryActionButton(
+                          x: width / 2,
+                          y: height * 2/3,
+                          zoom: zoom,
+                          text: "Start",
+                          onPressed: _onLevelStart,
+                        ),
+                      ],
+                      GamePhase.gameOn => <Widget>[
+                        // used only for debugging:
+                        // if (kDebugMode) DebugInfo(text: "Debug info: $_debugText"),
+                        LifeDisplay(
+                          x: width/2,
+                          y: 30,
+                          zoom: zoom,
+                          lives: _gameWorld.lives,
+                        ),
+                        HudText(
+                          x: width-60,
+                          y: 30,
+                          zoom: zoom,
+                          text: "Score: ${_gameWorld.score}",
+                        ),
+                        HudText(
+                          x: 60 * zoom,
+                          y: 30 * zoom,
+                          zoom: zoom,
+                          text: "Kills: ${_gameWorld.kills}/${_gameWorld.requiredKills}",
+                        ),
+                        HudText(
+                          x: width - 60 * zoom,
+                          y: height - 30 * zoom,
+                          zoom: zoom,
+                          text: "Level: ${_level+1}",
+                        ),
+                        HudText(
+                          x: 75 * zoom,
+                          y: height - 30 * zoom,
+                          zoom: zoom,
+                          text: "High score: $_highScore",
+                        ),
+                        for (final sprite in _gameWorld.sprites)
+                        SpriteWidget.fromSprite(
+                          sprite: sprite,
+                          zoom: zoom,
+                          ),
+                      ]
+                    },
+                  ),
+                ),
+              ),
+            );
+          }
         ),
       ),
     );
